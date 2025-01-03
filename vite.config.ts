@@ -9,18 +9,4 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        main: '/index.html'
-      },
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-        },
-      },
-    },
-  },
 })
