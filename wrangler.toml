@@ -7,8 +7,8 @@ SITEMAP_URL = "https://replicate.com/sitemap-models.xml"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "sitemap_data"
-database_id = "your-d1-database-id"
+database_name = "urls"
+database_id = "5c6798d5-e875-4972-b119-a1bf179497be"
 
 [triggers]
 crons = ["0 0 * * *"] # Run daily at midnight UTC
