@@ -1,6 +1,6 @@
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 
-interface ModelData {
+export interface ModelData {
   url: string;
   name: string;
   callCount: number;
@@ -22,4 +22,3 @@ export async function processModelUrl(url: string): Promise<ModelData | null> {
     return null;
   }
 }
-

@@ -1,16 +1,16 @@
 import { parseSitemap } from '../utils/sitemapParser';
-import { processModelUrl } from '../utils/modelProcessor';
-import fs from 'fs/promises';
+import { processModelUrl, ModelData } from '../utils/modelProcessor';
+import * as fs from 'fs/promises';
 
 async function analyzeReplicate() {
   const sitemapUrl = 'https://replicate.com/sitemap-models.xml';
-  const modelUrls = await parseSitemap(sitemapUrl);
+  const entries = await parseSitemap(sitemapUrl);
   
-  console.log(`Found ${modelUrls.length} model URLs`);
+  console.log(`Found ${entries.length} model URLs`);
   
-  const modelData = [];
-  for (const url of modelUrls) {
-    const data = await processModelUrl(url);
+  const modelData: ModelData[] = [];
+  for (const entry of entries) {
+    const data = await processModelUrl(entry.loc);
     if (data) {
       modelData.push(data);
       console.log(`Processed: ${data.name} (${data.callCount} calls)`);
@@ -50,5 +50,4 @@ function generateReport(modelData: ModelData[]): string {
   return report;
 }
 
-analyzeReplicate().catch(console.error);
-
+export { analyzeReplicate };

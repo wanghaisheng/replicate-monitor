@@ -3,6 +3,11 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Alert, AlertDescription, AlertTitle } from './ui/alert'
 
+interface ApiResponse {
+  processedUrls?: number;
+  error?: string;
+}
+
 export function SitemapProcessor() {
   const [sitemapUrl, setSitemapUrl] = useState('https://replicate.com/sitemap-models.xml')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -14,7 +19,7 @@ export function SitemapProcessor() {
     setError(null)
     setResult(null)
     try {
-      const response = await fetch('/api/process-sitemap', { // Updated endpoint
+      const response = await fetch('/api/process-sitemap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -22,7 +27,7 @@ export function SitemapProcessor() {
         body: JSON.stringify({ sitemapUrl }),
       })
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to process sitemap')

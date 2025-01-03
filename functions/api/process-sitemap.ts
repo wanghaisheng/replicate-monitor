@@ -4,6 +4,10 @@ interface Env {
   DB: D1Database;
 }
 
+interface RequestBody {
+  sitemapUrl: string;
+}
+
 export const onRequest: PagesFunction<Env> = async (context) => {
   // Handle CORS
   if (context.request.method === "OPTIONS") {
@@ -26,9 +30,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    const { sitemapUrl } = await context.request.json<{ sitemapUrl: string }>();
+    const body = await context.request.json() as RequestBody;
   
-    if (!sitemapUrl) {
+    if (!body.sitemapUrl) {
       return new Response(JSON.stringify({ error: 'Missing sitemapUrl' }), { 
         status: 400,
         headers: {
@@ -38,9 +42,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       });
     }
 
-    const entries = await parseSitemap(sitemapUrl);
+    const entries = await parseSitemap(body.sitemapUrl);
     const currentDate = new Date().toISOString().split('T')[0];
-    const domain = new URL(sitemapUrl).hostname;
+    const domain = new URL(body.sitemapUrl).hostname;
 
     let processedCount = 0;
 
@@ -70,6 +74,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         console.error(`Error processing entry ${entry.loc}:`, error);
       }
     }
+
     return new Response(JSON.stringify({ processedUrls: processedCount }), {
       status: 200,
       headers: {
