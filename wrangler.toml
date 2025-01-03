@@ -1,0 +1,15 @@
+name = "sitemap-processor"
+main = "src/worker.ts"
+compatibility_date = "2023-05-18"
+
+[vars]
+SITEMAP_URL = "https://replicate.com/sitemap-models.xml"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sitemap_data"
+database_id = "your-d1-database-id"
+
+[triggers]
+crons = ["0 0 * * *"] # Run daily at midnight UTC
+
