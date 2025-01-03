@@ -58,7 +58,6 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
-    "fast-xml-parser": "latest",
     "cheerio": "latest",
     "fs": "latest",
     "@cloudflare/workers-types": "latest"

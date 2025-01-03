@@ -1,23 +1,37 @@
-import { handleSitemapProcessing } from '../scripts/processSitemap';
+import { handleSitemapProcessing } from '../scripts/processSitemap'
 
 export interface Env {
-  DB: D1Database;
-  SITEMAP_URL: string;
+  DB: D1Database
 }
 
 export default {
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    await handleSitemapProcessing(env.DB, env);
-  },
-
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // This is just a simple endpoint to manually trigger the processing
     if (request.method === 'POST' && new URL(request.url).pathname === '/process-sitemap') {
-      await handleSitemapProcessing(env.DB, env);
-      return new Response('Sitemap processing completed', { status: 200 });
+      try {
+        const { sitemapUrl } = await request.json()
+      
+        if (!sitemapUrl) {
+          return new Response(JSON.stringify({ error: 'Missing sitemapUrl' }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          })
+        }
+
+        const processedUrls = await handleSitemapProcessing(env.DB, { SITEMAP_URL: sitemapUrl })
+        return new Response(JSON.stringify({ processedUrls }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      } catch (error) {
+        console.error('Error processing sitemap:', error)
+        return new Response(JSON.stringify({ error: 'Internal Server Error', details: error.message }), { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
     }
 
-    return new Response('Not found', { status: 404 });
+    return new Response('Not found', { status: 404 })
   }
-};
+}
 
