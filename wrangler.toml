@@ -10,3 +10,9 @@ database_id = "5c6798d5-e875-4972-b119-a1bf179497be"
 [triggers]
 crons = ["0 0 * * *"] # Run daily at midnight UTC
 
+[build]
+command = "npm run build"
+output_dir = "dist"
+
+[site]
+bucket = "./dist"

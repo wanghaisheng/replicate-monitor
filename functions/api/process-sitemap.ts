@@ -1,7 +1,7 @@
-import { handleSitemapProcessing } from '../../utils/processSitemap'
+import { parseSitemap } from '../../utils/sitemapParser';
 
 interface Env {
-  DB: D1Database
+  DB: D1Database;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -13,7 +13,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
-    })
+    });
   }
 
   if (context.request.method !== "POST") {
@@ -22,11 +22,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
       },
-    })
+    });
   }
 
   try {
-    const { sitemapUrl } = await context.request.json()
+    const { sitemapUrl } = await context.request.json<{ sitemapUrl: string }>();
   
     if (!sitemapUrl) {
       return new Response(JSON.stringify({ error: 'Missing sitemapUrl' }), { 
@@ -35,19 +35,50 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         }
-      })
+      });
     }
 
-    const processedUrls = await handleSitemapProcessing(context.env.DB, { SITEMAP_URL: sitemapUrl })
-    return new Response(JSON.stringify({ processedUrls }), {
+    const entries = await parseSitemap(sitemapUrl);
+    const currentDate = new Date().toISOString().split('T')[0];
+    const domain = new URL(sitemapUrl).hostname;
+
+    let processedCount = 0;
+
+    for (const entry of entries) {
+      try {
+        const urlWithoutDomain = entry.loc.replace(`https://${domain}`, '');
+        
+        await context.env.DB
+          .prepare(
+            `INSERT INTO replicate_url_info (sitename, url, lastModified, firstAppeared, runCount, modelName) 
+             VALUES (?, ?, ?, ?, ?, ?)
+             ON CONFLICT(url) DO UPDATE SET lastModified = ?, runCount = runCount + 1`
+          )
+          .bind(
+            domain,
+            entry.loc,
+            entry.lastmod || currentDate,
+            currentDate,
+            0,
+            urlWithoutDomain,
+            entry.lastmod || currentDate
+          )
+          .run();
+
+        processedCount++;
+  } catch (error) {
+        console.error(`Error processing entry ${entry.loc}:`, error);
+      }
+    }
+    return new Response(JSON.stringify({ processedUrls: processedCount }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       }
-    })
+    });
   } catch (error) {
-    console.error('Error processing sitemap:', error)
+    console.error('Error processing sitemap:', error);
     return new Response(JSON.stringify({ 
       error: 'Internal Server Error', 
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -56,7 +87,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
-      }
-    })
   }
+    });
 }
+};
