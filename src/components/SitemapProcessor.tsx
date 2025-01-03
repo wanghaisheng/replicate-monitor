@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert'
 interface ApiResponse {
   processedUrls?: number;
   error?: string;
+  details?: string;
 }
 
 export function SitemapProcessor() {
@@ -18,6 +19,7 @@ export function SitemapProcessor() {
     setIsProcessing(true)
     setError(null)
     setResult(null)
+
     try {
       const response = await fetch('/api/process-sitemap', {
         method: 'POST',
@@ -27,12 +29,17 @@ export function SitemapProcessor() {
         body: JSON.stringify({ sitemapUrl }),
       })
 
-      const data = await response.json() as ApiResponse
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to process sitemap')
+        const errorText = await response.text()
+        try {
+          const errorJson = JSON.parse(errorText)
+          throw new Error(errorJson.error || errorJson.details || 'Failed to process sitemap')
+        } catch (e) {
+          throw new Error(`Server error: ${response.status} ${errorText.slice(0, 100)}`)
+        }
       }
 
+      const data = await response.json() as ApiResponse
       setResult(`Processed ${data.processedUrls} URLs`)
     } catch (error) {
       console.error('Error processing sitemap:', error)
@@ -43,25 +50,31 @@ export function SitemapProcessor() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex space-x-2">
-        <Input
+    <div className="space-y-4 max-w-2xl mx-auto p-4">
+      <div className="flex flex-col space-y-2">
+        <h2 className="text-lg font-semibold">Sitemap Processor</h2>
+        <div className="flex space-x-2">
+          <Input
           type="url"
           placeholder="Enter sitemap URL"
           value={sitemapUrl}
           onChange={(e) => setSitemapUrl(e.target.value)}
           className="flex-grow"
+            disabled={isProcessing}
         />
         <Button onClick={handleProcess} disabled={isProcessing}>
           {isProcessing ? 'Processing...' : 'Process Sitemap'}
         </Button>
       </div>
+    </div>
+
       {error && (
         <Alert variant="destructive">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
       {result && (
         <Alert>
           <AlertTitle>Success</AlertTitle>
