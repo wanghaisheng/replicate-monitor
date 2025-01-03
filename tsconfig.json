@@ -14,8 +14,9 @@
     "jsx": "react-jsx",
     "allowImportingTsExtensions": true,
     "types": ["@cloudflare/workers-types", "vite/client"],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     },
     "useDefineForClassFields": true,
     "incremental": true,
