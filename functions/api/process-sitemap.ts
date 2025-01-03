@@ -30,9 +30,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    const { sitemapUrl } = await context.request.json<RequestBody>();
+    const body = await context.request.json() as RequestBody;
   
-    if (!sitemapUrl) {
+    if (!body.sitemapUrl) {
       return new Response(JSON.stringify({ error: 'Missing sitemapUrl' }), { 
         status: 400,
         headers: {
@@ -42,15 +42,20 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       });
     }
 
-    const entries = await parseSitemap(sitemapUrl);
     const currentDate = new Date().toISOString().split('T')[0];
-    const domain = new URL(sitemapUrl).hostname;
-
+    const domain = new URL(body.sitemapUrl).hostname;
     let processedCount = 0;
 
-    for (const entry of entries) {
       try {
-        const urlWithoutDomain = entry.loc.replace(`https://${domain}`, '');
+      const response = await fetch(body.sitemapUrl);
+      const xmlData = await response.text();
+      const urlRegex = /<url>\s*<loc>(.*?)<\/loc>\s*(?:<lastmod>(.*?)<\/lastmod>)?\s*<\/url>/g;
+      let match;
+
+      while ((match = urlRegex.exec(xmlData)) !== null) {
+        const loc = match[1];
+        const lastmod = match[2] || currentDate;
+        const urlWithoutDomain = loc.replace(`https://${domain}`, '');
         
         await context.env.DB
           .prepare(
@@ -60,31 +65,30 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           )
           .bind(
             domain,
-            entry.loc,
-            entry.lastmod || currentDate,
+            loc,
+            lastmod,
             currentDate,
             0,
             urlWithoutDomain,
-            entry.lastmod || currentDate
+            lastmod
           )
           .run();
 
         processedCount++;
-  } catch (error) {
-        console.error(`Error processing entry ${entry.loc}:`, error);
       }
+  } catch (error) {
+      console.error('Error processing sitemap:', error);
+      throw error;
     }
-
     return new Response(JSON.stringify({ processedUrls: processedCount }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
-      }
+  }
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error processing sitemap:', errorMessage);
     return new Response(JSON.stringify({ 
       error: 'Internal Server Error', 
       details: errorMessage 
@@ -93,7 +97,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
-  }
-    });
 }
+    });
+  }
 };

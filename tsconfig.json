@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
     "types": ["@cloudflare/workers-types", "vite/client"],
     "paths": {
       "@/*": ["./src/*"]

@@ -2,9 +2,9 @@ import { parseSitemap } from './sitemapParser';
 
 export async function handleSitemapProcessing(db: D1Database, env: { SITEMAP_URL: string }): Promise<number> {
   const sitemapUrl = env.SITEMAP_URL;
-  const domain = new URL(sitemapUrl).hostname;
   const entries = await parseSitemap(sitemapUrl);
   const currentDate = new Date().toISOString().split('T')[0];
+  const domain = new URL(sitemapUrl).hostname;
 
   let processedCount = 0;
 
