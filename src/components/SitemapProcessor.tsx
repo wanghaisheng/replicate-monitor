@@ -14,7 +14,7 @@ export function SitemapProcessor() {
     setError(null)
     setResult(null)
     try {
-      const response = await fetch('https://your-worker-url.workers.dev/process-sitemap', {
+      const response = await fetch('/api/process-sitemap', { // Updated endpoint
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,4 +66,3 @@ export function SitemapProcessor() {
     </div>
   )
 }
-
