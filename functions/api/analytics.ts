@@ -72,11 +72,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const stats = await context.env.DB.prepare(statsQuery).all()
 
     return new Response(JSON.stringify({
-      newModels: newModelsResult.count,
-      totalRunCount: totalRunsResult.total,
-      topModels: topModels.results,
-      trendingModels: trendingModels.results,
-      [`${timeframe}Stats`]: stats.results,
+      newModels: newModelsResult?.count ?? 0,
+      totalRunCount: totalRunsResult?.total ?? 0,
+      topModels: topModels.results ?? [],
+      trendingModels: trendingModels.results ?? [],
+      [`${timeframe}Stats`]: stats.results ?? [],
     }), { headers: corsHeaders })
 
   } catch (error) {

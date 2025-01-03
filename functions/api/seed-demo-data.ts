@@ -90,9 +90,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return new Response(JSON.stringify({
       message: "Demo data seeded successfully",
       stats: {
-        totalRecords: totalCount.count,
-        totalRuns: totalRuns.total,
-        uniqueModels: modelCount.count
+        totalRecords: totalCount?.count ?? 0,
+        totalRuns: totalRuns?.total ?? 0,
+        uniqueModels: modelCount?.count ?? 0
       }
     }), { headers: corsHeaders })
 
