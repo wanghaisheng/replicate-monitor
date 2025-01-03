@@ -22,28 +22,28 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (context.request.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { 
-        status: 405,
-        headers: corsHeaders
-      }
-    );
-  }
-
   try {
-    const body = await context.request.json() as RequestBody;
-    
-    if (!body?.sitemapUrl) {
+    if (context.request.method !== "POST") {
       return new Response(
-        JSON.stringify({ error: "Missing sitemapUrl parameter" }),
+        JSON.stringify({ error: "Method not allowed" }),
         { 
-          status: 400,
+          status: 405,
           headers: corsHeaders
         }
       );
     }
+
+    const body = await context.request.json() as RequestBody;
+    
+    if (!body?.sitemapUrl) {
+    return new Response(
+        JSON.stringify({ error: "Missing sitemapUrl parameter" }),
+      { 
+          status: 400,
+        headers: corsHeaders
+      }
+    );
+  }
 
     const entries = await parseSitemap(body.sitemapUrl);
     const currentDate = new Date().toISOString().split('T')[0];

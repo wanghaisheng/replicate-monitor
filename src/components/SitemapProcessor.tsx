@@ -21,7 +21,7 @@ export function SitemapProcessor() {
     setResult(null)
 
     try {
-      const response = await fetch('/api/process-sitemap', {
+      const response = await fetch('/api/process-sitemap', {  // Make sure this matches your API path
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,7 +35,8 @@ export function SitemapProcessor() {
           const errorJson = JSON.parse(errorText)
           throw new Error(errorJson.error || errorJson.details || 'Failed to process sitemap')
         } catch (e) {
-          throw new Error(`Server error: ${response.status} ${errorText.slice(0, 100)}`)
+          // If the response isn't JSON, show the raw error
+          throw new Error(`Server error: ${response.status} - ${errorText.slice(0, 100)}`)
         }
       }
 
