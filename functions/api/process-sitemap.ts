@@ -1,4 +1,5 @@
 import { parseSitemap } from '../../utils/sitemapParser';
+import { insertOrUpdateUrlInfo } from '../../utils/d1Database';
 
 interface Env {
   DB: D1Database;
@@ -42,44 +43,30 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       });
     }
 
+    const entries = await parseSitemap(body.sitemapUrl);
     const currentDate = new Date().toISOString().split('T')[0];
     const domain = new URL(body.sitemapUrl).hostname;
+
     let processedCount = 0;
 
+    for (const entry of entries) {
       try {
-      const response = await fetch(body.sitemapUrl);
-      const xmlData = await response.text();
-      const urlRegex = /<url>\s*<loc>(.*?)<\/loc>\s*(?:<lastmod>(.*?)<\/lastmod>)?\s*<\/url>/g;
-      let match;
-
-      while ((match = urlRegex.exec(xmlData)) !== null) {
-        const loc = match[1];
-        const lastmod = match[2] || currentDate;
-        const urlWithoutDomain = loc.replace(`https://${domain}`, '');
+        const urlWithoutDomain = entry.loc.replace(`https://${domain}`, '');
         
-        await context.env.DB
-          .prepare(
-            `INSERT INTO replicate_url_info (sitename, url, lastModified, firstAppeared, runCount, modelName) 
-             VALUES (?, ?, ?, ?, ?, ?)
-             ON CONFLICT(url) DO UPDATE SET lastModified = ?, runCount = runCount + 1`
-          )
-          .bind(
-            domain,
-            loc,
-            lastmod,
-            currentDate,
-            0,
-            urlWithoutDomain,
-            lastmod
-          )
-          .run();
-
+        await insertOrUpdateUrlInfo(context.env.DB, {
+          sitename: domain,
+          url: entry.loc,
+          lastModified: entry.lastmod || currentDate,
+          firstAppeared: currentDate,
+          runCount: 0,
+          modelName: urlWithoutDomain
+        });
         processedCount++;
-      }
   } catch (error) {
-      console.error('Error processing sitemap:', error);
-      throw error;
+        console.error(`Error processing entry ${entry.loc}:`, error);
     }
+    }
+
     return new Response(JSON.stringify({ processedUrls: processedCount }), {
       status: 200,
       headers: {
