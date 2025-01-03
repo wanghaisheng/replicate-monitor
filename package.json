@@ -60,7 +60,9 @@
     "zod": "^3.24.1",
     "cheerio": "latest",
     "fs": "latest",
-    "@cloudflare/workers-types": "latest"
+    "@cloudflare/workers-types": "latest",
+    "vite": "latest",
+    "@vitejs/plugin-react": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

@@ -13,18 +13,18 @@ export async function insertOrUpdateUrlInfo(db: D1Database, urlInfo: UrlInfo): P
   const { sitename, url, lastModified, firstAppeared, runCount, modelName } = urlInfo
 
   const existingEntry = await db
-    .prepare('SELECT * FROM replicate_url_info WHERE url = ?')
+    .prepare('SELECT * FROM url_info WHERE url = ?')
     .bind(url)
     .first()
 
   if (existingEntry) {
     await db
-      .prepare('UPDATE replicate_url_info SET lastModified = ?, runCount = runCount + 1 WHERE url = ?')
+      .prepare('UPDATE url_info SET lastModified = ?, runCount = runCount + 1 WHERE url = ?')
       .bind(lastModified, url)
       .run()
   } else {
     await db
-      .prepare('INSERT INTO replicate_url_info (sitename, url, lastModified, firstAppeared, runCount, modelName) VALUES (?, ?, ?, ?, ?, ?)')
+      .prepare('INSERT INTO url_info (sitename, url, lastModified, firstAppeared, runCount, modelName) VALUES (?, ?, ?, ?, ?, ?)')
       .bind(sitename, url, lastModified, firstAppeared, runCount, modelName)
       .run()
   }
