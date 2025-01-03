@@ -1,4 +1,4 @@
-import { parseSitemap, SitemapEntry } from '../utils/sitemapParser'
+import { parseSitemap } from '../utils/sitemapParser'
 import { insertOrUpdateUrlInfo } from '../utils/d1Database'
 import { D1Database } from '@cloudflare/workers-types'
 
@@ -38,4 +38,3 @@ export async function handleSitemapProcessing(db: D1Database, env: { SITEMAP_URL
 
   return await processSitemap(db, sitemapUrl, domain)
 }
-
