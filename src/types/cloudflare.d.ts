@@ -4,4 +4,8 @@ interface Env {
   DB: D1Database;
 }
 
-type PagesFunction<E = unknown> = (context: EventContext<E, string, unknown>) => Promise<Response>;
+type PagesFunction<E = unknown> = (context: {
+  request: Request;
+  env: E;
+  params: Record<string, string>;
+}) => Promise<Response>;

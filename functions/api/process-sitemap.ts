@@ -30,9 +30,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    const body = await context.request.json() as RequestBody;
+    const { sitemapUrl } = await context.request.json<RequestBody>();
   
-    if (!body.sitemapUrl) {
+    if (!sitemapUrl) {
       return new Response(JSON.stringify({ error: 'Missing sitemapUrl' }), { 
         status: 400,
         headers: {
@@ -42,9 +42,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       });
     }
 
-    const entries = await parseSitemap(body.sitemapUrl);
+    const entries = await parseSitemap(sitemapUrl);
     const currentDate = new Date().toISOString().split('T')[0];
-    const domain = new URL(body.sitemapUrl).hostname;
+    const domain = new URL(sitemapUrl).hostname;
 
     let processedCount = 0;
 
@@ -83,10 +83,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     });
   } catch (error) {
-    console.error('Error processing sitemap:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error processing sitemap:', errorMessage);
     return new Response(JSON.stringify({ 
       error: 'Internal Server Error', 
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage 
     }), { 
       status: 500,
       headers: {
