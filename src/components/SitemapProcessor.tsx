@@ -7,10 +7,12 @@ export function SitemapProcessor() {
   const [sitemapUrl, setSitemapUrl] = useState('https://replicate.com/sitemap-models.xml')
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<string | null>(null)
 
   const handleProcess = async () => {
     setIsProcessing(true)
     setError(null)
+    setResult(null)
     try {
       const response = await fetch('https://your-worker-url.workers.dev/process-sitemap', {
         method: 'POST',
@@ -20,13 +22,13 @@ export function SitemapProcessor() {
         body: JSON.stringify({ sitemapUrl }),
       })
 
-      const result = await response.json()
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to process sitemap')
+        throw new Error(data.error || 'Failed to process sitemap')
       }
 
-      console.log(`Processed ${result.processedUrls} URLs`)
+      setResult(`Processed ${data.processedUrls} URLs`)
     } catch (error) {
       console.error('Error processing sitemap:', error)
       setError(error instanceof Error ? error.message : 'An unexpected error occurred')
@@ -53,6 +55,12 @@ export function SitemapProcessor() {
         <Alert variant="destructive">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {result && (
+        <Alert>
+          <AlertTitle>Success</AlertTitle>
+          <AlertDescription>{result}</AlertDescription>
         </Alert>
       )}
     </div>
